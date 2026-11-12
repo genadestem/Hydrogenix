@@ -23,6 +23,7 @@ function getLocalAlerts(): Alert[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
+    // Ignore local storage read errors.
     return [];
   }
 }
@@ -32,7 +33,9 @@ function saveLocalAlerts(alerts: Alert[]) {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts));
     }
-  } catch {}
+  } catch {
+    // Ignore local storage write errors.
+  }
 }
 
 export function useAlerts() {
@@ -76,6 +79,7 @@ export function useAlerts() {
     severity: Alert['severity'] = 'info',
     options: CreateAlertOptions = {},
   ) => {
+    void options;
     const data = getLocalAlerts();
     const newId = data.length > 0 ? Math.max(...data.map(a => a.id)) + 1 : 1;
     const newAlert: Alert = {
@@ -102,13 +106,25 @@ export function useAlerts() {
   }, [fetchAlerts]);
 
   useEffect(() => {
-    fetchAlerts();
-    
-    const handleUpdate = () => fetchAlerts();
+    const timeoutId = window.setTimeout(() => {
+      void fetchAlerts();
+    }, 0);
+
+    const handleUpdate = () => {
+      void fetchAlerts();
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('nexagrow:alerts_updated', handleUpdate);
-      return () => window.removeEventListener('nexagrow:alerts_updated', handleUpdate);
+      return () => {
+        window.clearTimeout(timeoutId);
+        window.removeEventListener('nexagrow:alerts_updated', handleUpdate);
+      };
     }
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchAlerts]);
 
   return { alerts, unreadCount, loading, fetchAlerts, markAsRead, createAlert };

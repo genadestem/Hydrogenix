@@ -12,7 +12,6 @@ import {
   getWeatherLocationCities,
   getWeatherLocationDistricts,
   getWeatherLocationItemByPath,
-  getWeatherLocationProvinces,
   getWeatherLocationVillages,
   getWeatherLocationsByCategory,
   normalizeWeatherLocationCode,
@@ -33,19 +32,6 @@ type WeatherSelection = {
   city: string;
   district: string;
   locationCode: string;
-};
-
-type BmkgVillageLocation = {
-  code: string;
-  label: string;
-  province: string;
-  city: string;
-  district: string;
-  category: 'semarang';
-  level: 'village';
-  parentCode: string;
-  village?: string;
-  ready?: boolean;
 };
 
 const STORAGE_KEY = 'nexagrow-weather-selection-v1';
@@ -138,30 +124,28 @@ export function WeatherPage({ locationCode, settings, updateSettings }: WeatherP
   const [selection, setSelection] = useState<WeatherSelection>(resolveSelectionFromCode(initialCode));
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [bmkgVillages, setBmkgVillages] = useState<BmkgVillageLocation[]>([]);
-  const [loadingVillages, setLoadingVillages] = useState(false);
-  const [villagesError, setVillagesError] = useState<string | null>(null);
-
   const lastSyncedRemoteLocation = useRef<string | null>(null);
 
   useEffect(() => {
     const nextRemote = normalizeWeatherLocationCode(settings?.location || locationCode || '');
-    if (nextRemote && nextRemote !== lastSyncedRemoteLocation.current) {
-      console.log(`[WeatherPage] Syncing location from ${lastSyncedRemoteLocation.current} to ${nextRemote}`);
+    if (!nextRemote || nextRemote === lastSyncedRemoteLocation.current) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
       lastSyncedRemoteLocation.current = nextRemote;
       setSelection(resolveSelectionFromCode(nextRemote));
-    } else if (!nextRemote && lastSyncedRemoteLocation.current !== DEFAULT_WEATHER_LOCATION_CODE) {
-      // Reset to default if no location provided
-      lastSyncedRemoteLocation.current = DEFAULT_WEATHER_LOCATION_CODE;
-      setSelection(resolveSelectionFromCode(DEFAULT_WEATHER_LOCATION_CODE));
-    }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [locationCode, settings?.location]);
 
   useEffect(() => {
     persistStoredSelection(selection.locationCode);
   }, [selection.locationCode]);
 
-  const provinceOptions = useMemo(() => getWeatherLocationProvinces(selection.category), [selection.category]);
   const cityOptions = useMemo(() => getWeatherLocationCities(selection.category, selection.province), [selection.category, selection.province]);
   const districtOptions = useMemo(() => getWeatherLocationDistricts(selection.category, selection.province, selection.city), [selection.category, selection.province, selection.city]);
   const localVillageOptions = useMemo(
@@ -170,35 +154,24 @@ export function WeatherPage({ locationCode, settings, updateSettings }: WeatherP
   );
 
   useEffect(() => {
-    if (selection.category !== 'semarang' || !selection.district) {
-      setBmkgVillages([]);
-      setVillagesError(null);
-      setLoadingVillages(false);
-      return;
-    }
-    
-    // Scrape is disabled as BMKG structure changed. Using local options.
-    setBmkgVillages([]);
-    setVillagesError(null);
-    setLoadingVillages(false);
-  }, [selection.category, selection.district]);
-
-  useEffect(() => {
     if (selection.category !== 'semarang') return;
-    const options = bmkgVillages.length > 0 ? bmkgVillages : localVillageOptions;
+    const options = localVillageOptions;
     if (options.length === 0) return;
-    // Already in the list — nothing to do
     if (options.some((item) => item.code === selection.locationCode)) return;
-    // If the current code belongs to the same district (same prefix up to
-    // the kecamatan segment, e.g. "33.74.07"), keep the user's explicit
-    // choice even when BMKG uses a different village code for the same area.
+
     const currentPrefix = selection.locationCode.split('.').slice(0, 3).join('.');
     const districtItem = getWeatherLocationItemByPath(selection.category, selection.province, selection.city, selection.district);
     const expectedPrefix = districtItem?.code?.split('.').slice(0, 3).join('.') || currentPrefix;
     if (currentPrefix === expectedPrefix) return;
-    // Code is from a different district entirely — snap to the first option
-    setSelection((prev) => ({ ...prev, locationCode: options[0].code }));
-  }, [bmkgVillages, localVillageOptions, selection.category, selection.locationCode, selection.province, selection.city, selection.district]);
+
+    const timeoutId = window.setTimeout(() => {
+      setSelection((prev) => ({ ...prev, locationCode: options[0].code }));
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [localVillageOptions, selection.category, selection.locationCode, selection.province, selection.city, selection.district]);
 
   const weatherCode = selection.locationCode;
   const { data, loading, error } = useWeather(weatherCode);
@@ -230,7 +203,6 @@ export function WeatherPage({ locationCode, settings, updateSettings }: WeatherP
     });
   };
 
-  const handleProvinceChange = (province: string) => updateSelection({ province, city: '', district: '' });
   const handleCityChange = (city: string) => updateSelection({ city, district: '' });
   const handleDistrictChange = (district: string) => {
     const districtItem = getWeatherLocationItemByPath(selection.category, selection.province, selection.city, district);
@@ -316,8 +288,7 @@ export function WeatherPage({ locationCode, settings, updateSettings }: WeatherP
   };
 
   const currentCategoryLabel = WEATHER_LOCATION_CATEGORIES.find((item) => item.id === selection.category)?.label || 'Lokasi';
-  const isSemarang = selection.category === 'semarang';
-  const villageOptions = isSemarang ? (bmkgVillages.length > 0 ? bmkgVillages : localVillageOptions) : localVillageOptions;
+  const villageOptions = localVillageOptions;
 
   const hasVillageOptions = villageOptions.length > 0;
   const districtFallbackOptions = districtOptions;
@@ -406,8 +377,7 @@ export function WeatherPage({ locationCode, settings, updateSettings }: WeatherP
                 <select
                   value={weatherCode}
                   onChange={(e) => handleVillageChange(e.target.value)}
-                  disabled={isSemarang && loadingVillages && villageOptions.length === 0}
-                  className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-10 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-wait disabled:opacity-60"
+                  className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-10 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 >
                   {hasVillageOptions ? (
                     villageOptions.map((item) => (

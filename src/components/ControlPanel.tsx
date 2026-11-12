@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Timer, Droplets, Settings2, Clock3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -9,17 +9,47 @@ interface ControlPanelProps {
   sensorData: SensorData | null;
 }
 
-// getAutoControlDetails removed; logic implemented inside component to use runtime refs
+function ControlButton({
+  onClick,
+  icon: Icon,
+  label,
+  variant = 'primary',
+  disabled = false,
+  loading = false,
+}: {
+  onClick: () => void;
+  icon: LucideIcon;
+  label: string;
+  variant?: 'primary' | 'danger' | 'warning' | 'success';
+  disabled?: boolean;
+  loading?: boolean;
+}) {
+  const variants = {
+    primary: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200',
+    danger: 'bg-red-500 hover:bg-red-600 shadow-red-200',
+    warning: 'bg-amber-500 hover:bg-amber-600 shadow-amber-200',
+    success: 'bg-slate-700 hover:bg-slate-800 shadow-slate-200',
+  } as const;
+
+  return (
+    <motion.button
+      whileHover={{ scale: disabled ? 1 : 1.03 }}
+      whileTap={{ scale: disabled ? 1 : 0.97 }}
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={`${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        flex w-full items-center gap-3 rounded-2xl px-5 py-4 font-medium text-white shadow-lg transition-all`}
+    >
+      <Icon size={20} />
+      <span>{label}</span>
+      {loading && <motion.div className="ml-auto h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
+    </motion.button>
+  );
+}
 
 export function ControlPanel({ sensorData }: ControlPanelProps) {
   const { sendCommand, loading } = useControl();
   const [activeMode, setActiveMode] = useState<'manual' | 'auto'>('manual');
-
-  useEffect(() => {
-    if (sensorData?.device_mode === 'auto' || sensorData?.device_mode === 'manual') {
-      setActiveMode(sensorData.device_mode);
-    }
-  }, [sensorData?.device_mode]);
 
   const scheduleText = useMemo(() => {
     if (!sensorData?.schedule_enabled) return 'Nonaktif';
@@ -28,10 +58,7 @@ export function ControlPanel({ sensorData }: ControlPanelProps) {
     return `Aktif • ${sensorData.watering_time} • ${duration}`;
   }, [sensorData?.schedule_enabled, sensorData?.watering_time, sensorData?.watering_duration]);
 
-  const autoState = sensorData?.auto_state ?? 'unknown';
-  const autoReason = sensorData?.auto_reason ?? 'Status otomatis belum tersedia';
-
-  const handleCommand = async (action: string, duration?: number, data?: Record<string, any>) => {
+  const handleCommand = async (action: string, duration?: number, data?: Record<string, unknown>) => {
     try {
       await sendCommand(action, duration, data);
       if (action === 'mode_auto') setActiveMode('auto');
@@ -39,44 +66,6 @@ export function ControlPanel({ sensorData }: ControlPanelProps) {
     } catch (err) {
       console.error('Command failed:', err);
     }
-  };
-
-  // Web no longer issues automatic pump_on/pump_off — Arduino handles `controlPompa()`.
-
-  function ControlButton({
-    onClick,
-    icon: Icon,
-    label,
-    variant = 'primary',
-    disabled = false,
-  }: {
-    onClick: () => void;
-    icon: LucideIcon;
-    label: string;
-    variant?: 'primary' | 'danger' | 'warning' | 'success';
-    disabled?: boolean;
-  }) {
-    const variants = {
-      primary: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200',
-      danger: 'bg-red-500 hover:bg-red-600 shadow-red-200',
-      warning: 'bg-amber-500 hover:bg-amber-600 shadow-amber-200',
-      success: 'bg-slate-700 hover:bg-slate-800 shadow-slate-200',
-    } as const;
-
-    return (
-      <motion.button
-        whileHover={{ scale: disabled ? 1 : 1.03 }}
-        whileTap={{ scale: disabled ? 1 : 0.97 }}
-        onClick={onClick}
-        disabled={disabled || loading}
-        className={`${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          flex w-full items-center gap-3 rounded-2xl px-5 py-4 font-medium text-white shadow-lg transition-all`}
-      >
-        <Icon size={20} />
-        <span>{label}</span>
-        {loading && <motion.div className="ml-auto h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
-      </motion.button>
-    );
   };
 
   return (
@@ -173,6 +162,7 @@ export function ControlPanel({ sensorData }: ControlPanelProps) {
             label="Pompa ON"
             variant="success"
             disabled={sensorData?.pump_status === true}
+            loading={loading}
           />
           <ControlButton
             onClick={() => handleCommand('pump_off')}
@@ -180,6 +170,7 @@ export function ControlPanel({ sensorData }: ControlPanelProps) {
             label="Pompa OFF"
             variant="danger"
             disabled={sensorData?.pump_status === false}
+            loading={loading}
           />
         </div>
 
@@ -195,6 +186,7 @@ export function ControlPanel({ sensorData }: ControlPanelProps) {
               label="Jalankan Pompa 10 Detik"
               variant="primary"
               disabled={sensorData?.pump_status === true}
+              loading={loading}
             />
           </div>
           <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">

@@ -119,48 +119,34 @@ export function useWeather(locationCode?: string) {
   const prevLocationCode = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    // Invalidate cache immediately when location changes
-    if (locationCode && prevLocationCode.current !== locationCode) {
-      const cacheKey = getWeatherCacheKey(locationCode);
-      window.localStorage.removeItem(cacheKey);
-      prevLocationCode.current = locationCode;
-    }
+    let cleanup: (() => void) | undefined;
 
-    const controller = new AbortController();
-    const normalizedLocation = locationCode ? normalizeWeatherLocationCode(locationCode) : DEFAULT_WEATHER_LOCATION_CODE;
-    const fallbackLabel = resolveWeatherLocationLabel(normalizedLocation);
-    const pathLabel = resolveWeatherLocationPath(normalizedLocation);
-    const cachedWeather = readWeatherCache(normalizedLocation);
-    const staticFallback = createStaticWeatherFallback(normalizedLocation, pathLabel);
+    const timeoutId = window.setTimeout(() => {
+      // Invalidate cache immediately when location changes
+      if (locationCode && prevLocationCode.current !== locationCode) {
+        const cacheKey = getWeatherCacheKey(locationCode);
+        window.localStorage.removeItem(cacheKey);
+        prevLocationCode.current = locationCode;
+      }
 
-    setLoading(true);
-    setError(null);
-    setData(normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel));
+      const controller = new AbortController();
+      const normalizedLocation = locationCode ? normalizeWeatherLocationCode(locationCode) : DEFAULT_WEATHER_LOCATION_CODE;
+      const fallbackLabel = resolveWeatherLocationLabel(normalizedLocation);
+      const pathLabel = resolveWeatherLocationPath(normalizedLocation);
+      const cachedWeather = readWeatherCache(normalizedLocation);
+      const staticFallback = createStaticWeatherFallback(normalizedLocation, pathLabel);
 
-    const fetchWeather = async () => {
-      try {
-        const apiUrl = `/api/weather?location=${encodeURIComponent(normalizedLocation)}`;
-        const response = await fetch(apiUrl, { signal: controller.signal });
+      setLoading(true);
+      setError(null);
+      setData(normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel));
 
-        if (response.ok) {
-          const weather = await response.json();
-          const resolved = normalizeWeatherData(normalizedLocation, { ...weather, location_code: normalizedLocation }, fallbackLabel, pathLabel);
-          setData(resolved);
-          writeWeatherCache(normalizedLocation, resolved);
-          setError(null);
-          return;
-        }
+      const fetchWeather = async () => {
+        try {
+          const apiUrl = `/api/weather?location=${encodeURIComponent(normalizedLocation)}`;
+          const response = await fetch(apiUrl, { signal: controller.signal });
 
-        const apiErrorText = await response.text();
-        const apiError = `Weather API failed (${response.status}): ${apiErrorText}`;
-
-        if (BMKG_URL) {
-          const bmkgUrl = buildBmkgWeatherUrl(BMKG_URL, normalizedLocation);
-          const bmkgRes = await fetch(bmkgUrl, { signal: controller.signal });
-
-          if (bmkgRes.ok) {
-            const bmkgJson = await bmkgRes.json();
-            const weather = transformBmkgWeather(bmkgJson, fallbackLabel);
+          if (response.ok) {
+            const weather = await response.json();
             const resolved = normalizeWeatherData(normalizedLocation, { ...weather, location_code: normalizedLocation }, fallbackLabel, pathLabel);
             setData(resolved);
             writeWeatherCache(normalizedLocation, resolved);
@@ -168,35 +154,59 @@ export function useWeather(locationCode?: string) {
             return;
           }
 
-          const bmkgErrorText = await bmkgRes.text();
-          setError(`BMKG fallback failed (${bmkgRes.status}): ${bmkgErrorText}`);
+          const apiErrorText = await response.text();
+          const apiError = `Weather API failed (${response.status}): ${apiErrorText}`;
+
+          if (BMKG_URL) {
+            const bmkgUrl = buildBmkgWeatherUrl(BMKG_URL, normalizedLocation);
+            const bmkgRes = await fetch(bmkgUrl, { signal: controller.signal });
+
+            if (bmkgRes.ok) {
+              const bmkgJson = await bmkgRes.json();
+              const weather = transformBmkgWeather(bmkgJson, fallbackLabel);
+              const resolved = normalizeWeatherData(normalizedLocation, { ...weather, location_code: normalizedLocation }, fallbackLabel, pathLabel);
+              setData(resolved);
+              writeWeatherCache(normalizedLocation, resolved);
+              setError(null);
+              return;
+            }
+
+            const bmkgErrorText = await bmkgRes.text();
+            setError(`BMKG fallback failed (${bmkgRes.status}): ${bmkgErrorText}`);
+            const fallbackData = normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel);
+            setData(fallbackData);
+            return;
+          }
+
+          setError(apiError);
           const fallbackData = normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel);
           setData(fallbackData);
-          return;
+        } catch (err) {
+          if ((err as Error)?.name === 'AbortError') return;
+
+          const fallbackData = normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel);
+          setData(fallbackData);
+          setError(err instanceof Error ? err.message : 'Gagal memuat cuaca');
+        } finally {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+          }
         }
+      };
 
-        setError(apiError);
-        const fallbackData = normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel);
-        setData(fallbackData);
-      } catch (err) {
-        if ((err as Error)?.name === 'AbortError') return;
-
-        const fallbackData = normalizeWeatherData(normalizedLocation, cachedWeather ?? staticFallback, fallbackLabel, pathLabel);
-        setData(fallbackData);
-        setError(err instanceof Error ? err.message : 'Gagal memuat cuaca');
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchWeather();
-    const interval = window.setInterval(fetchWeather, 300000);
+      void fetchWeather();
+      const interval = window.setInterval(() => {
+        void fetchWeather();
+      }, 300000);
+      cleanup = () => {
+        controller.abort();
+        window.clearInterval(interval);
+      };
+    }, 0);
 
     return () => {
-      controller.abort();
-      window.clearInterval(interval);
+      window.clearTimeout(timeoutId);
+      cleanup?.();
     };
   }, [locationCode]);
 

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { CloudRain, Sun, Cloud, Wind, Droplets, Umbrella, AlertCircle } from 'lucide-react';
 import { WeatherData } from '../hooks/useWeather';
 

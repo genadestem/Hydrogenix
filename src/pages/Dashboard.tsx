@@ -1,4 +1,4 @@
-import { Thermometer, Droplets, Power, CloudRain, CalendarClock, ShieldAlert, MessageSquare} from 'lucide-react';
+import { Thermometer, Droplets, Power, CloudRain, CalendarClock, MessageSquare } from 'lucide-react';
 import { SensorCard } from '../components/SensorCard';
 import { ChatInterface } from '../components/ChatInterface';
 import { SensorData } from '../hooks/useSensorData';
@@ -6,7 +6,7 @@ import { SensorData } from '../hooks/useSensorData';
 import { Settings } from '../hooks/useSettings';
 import { WeatherData } from '../hooks/useWeather';
 import { PlantHealthSummary, getPlantPhaseProfile } from '../lib/plantPhase';
-import logo from '../assets/nexagrow-logo.png';
+import logo from '../assets/hydrogenix-logo.jpeg';
 
 import type { DeviceStatus } from '../hooks/useDeviceStatus';
 
@@ -67,20 +67,20 @@ export function Dashboard({ sensorData, settings, weatherData, health }: Dashboa
 
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-        <div className="grid gap-5 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-5 text-white lg:grid-cols-[1.15fr_0.85fr] lg:p-6">
+      <div className="overflow-hidden rounded-3xl border border-violet-300/10 bg-[#100e19] shadow-lg shadow-black/20">
+        <div className="dashboard-hero grid gap-5 bg-gradient-to-br from-[#1a1230] via-[#24143d] to-[#171126] p-5 text-white lg:grid-cols-[1.15fr_0.85fr] lg:p-6">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 overflow-hidden rounded-3xl bg-white/15 ring-1 ring-white/20 sm:h-16 sm:w-16">
-                <img src={logo} alt="NexaGrow" className="h-full w-full object-cover" />
+                <img src={logo} alt="Hydrogenix" className="h-full w-full object-cover" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white/80">NexaGrow</p>
-                <h1 className="text-2xl font-black tracking-tight sm:text-4xl">Intelligent Plant Monitoring</h1>
+                <p className="text-sm font-medium text-violet-200">SMART AGRICULTURE · IoT</p>
+                <h1 className="text-2xl font-semibold tracking-tight sm:text-4xl">Hydrogenix</h1>
               </div>
             </div>
 
-            <p className="max-w-2xl text-sm leading-6 text-emerald-50 sm:text-base">
+            <p className="max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
               Platform smart agriculture berbasis IoT yang diperkuat AI untuk monitoring, analisis, dan otomatisasi pertanian secara real-time.
             </p>
           </div>

@@ -1,4 +1,4 @@
-import { Bell, Wifi, WifiOff, ChevronDown, CheckCheck, ShieldAlert } from 'lucide-react';
+import { Bell, Wifi, WifiOff, ChevronDown, CheckCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { MqttStatusSnapshot } from '../hooks/useMqttStatus';
@@ -14,15 +14,15 @@ interface HeaderProps {
 const pageTitles: Record<string, string> = {
   dashboard: 'Dashboard',
   monitoring: 'Monitoring Real-time',
-  chat: 'NexaBot',
+  chat: 'Hydrogenix AI',
   control: 'Kontrol Perangkat',
   weather: 'Prakiraan Cuaca',
   logs: 'Log & Analitik',
   settings: 'Pengaturan',
-  about: 'About / Tentang NexaGrow',
+  about: 'About / Tentang Hydrogenix',
 };
 
-export function Header({ mqttStatus, currentPage, health }: HeaderProps) {
+export function Header({ mqttStatus, currentPage }: HeaderProps) {
   const { alerts, unreadCount, markAsRead, fetchAlerts } = useAlerts();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -44,10 +44,10 @@ export function Header({ mqttStatus, currentPage, health }: HeaderProps) {
   const title = pageTitles[currentPage] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#0c0a14]/90 backdrop-blur-xl">
       <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <div className="min-w-0 pl-12 pr-1 sm:pl-0">
-          <h2 className="truncate text-lg font-bold text-slate-900 sm:text-2xl">{title}</h2>
+          <h2 className="truncate text-lg font-semibold tracking-tight text-slate-100 sm:text-2xl">{title}</h2>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -79,7 +79,7 @@ export function Header({ mqttStatus, currentPage, health }: HeaderProps) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setOpen((prev) => !prev)}
-              className="relative inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 transition hover:bg-slate-50"
+              className="relative inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-slate-200 transition hover:bg-white/[0.08]"
               title="Notifikasi"
             >
               <Bell size={18} />
@@ -101,16 +101,16 @@ export function Header({ mqttStatus, currentPage, health }: HeaderProps) {
                   initial={{ opacity: 0, y: -8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                  className="absolute right-0 mt-3 w-[min(92vw,24rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+                  className="absolute right-0 mt-3 w-[min(92vw,24rem)] overflow-hidden rounded-3xl border border-white/10 bg-[#12101c] shadow-2xl shadow-black/40"
                 >
-                  <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+                  <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">Histori Notifikasi</p>
+                      <p className="text-sm font-semibold text-slate-100">Histori Notifikasi</p>
                       <p className="text-xs text-slate-500">{unreadCount} belum dibaca</p>
                     </div>
                     <button
                       onClick={() => markAsRead()}
-                      className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                      className="inline-flex items-center gap-1 rounded-xl bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200 hover:bg-violet-500/20"
                     >
                       <CheckCheck size={14} />
                       Tandai semua

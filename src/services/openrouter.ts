@@ -113,51 +113,6 @@ interface SensorSnapshotApi {
   weather_forecast?: string | null;
 }
 
-interface SensorSnapshotResponse {
-  device_id?: string;
-  temperature?: number;
-  humidity?: number;
-  soil_moisture?: number;
-  rain?: number;
-  score?: number;
-  soil_score?: number;
-  vdp_score?: number;
-  rain_score?: number;
-  vpd?: number;
-  duration_estimate?: number;
-  pump_status?: boolean;
-  led_status?: boolean;
-  device_mode?: 'manual' | 'auto' | null;
-  wifi_status?: string | null;
-  threshold_kritis?: number | null;
-  threshold_atas?: number | null;
-  threshold_bawah?: number | null;
-  watering_time?: string | null;
-  watering_duration?: number | null;
-  schedule_enabled?: boolean;
-  created_at?: string | null;
-  updatedAt?: string | null;
-  sourceTopic?: string | null;
-  plant_phase?: 'vegetatif' | 'generatif' | null;
-  soil_threshold_low?: number | null;
-  soil_threshold_high?: number | null;
-  soil_threshold_critical?: number | null;
-  humidity_threshold_low?: number | null;
-  humidity_threshold_high?: number | null;
-  temp_threshold_low?: number | null;
-  temp_threshold_high?: number | null;
-  formula_name?: string | null;
-  formula_soil?: string | null;
-  formula_vpd?: string | null;
-  formula_score?: string | null;
-  soil_raw_dry?: number | null;
-  weather_location?: string | null;
-  weather_condition?: string | null;
-  weather_temperature?: number | null;
-  weather_rain_chance?: number | null;
-  weather_forecast_location?: string | null;
-}
-
 function safeNumber(value: unknown): number | null {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   if (typeof value === 'string') {
@@ -176,11 +131,6 @@ function safeBoolean(value: unknown): boolean | undefined {
     if (['false', '0', 'off', 'no', 'n'].includes(normalized)) return false;
   }
   return undefined;
-}
-
-function safePhase(value: unknown): 'vegetatif' | 'generatif' | null | undefined {
-  if (typeof value !== 'string') return undefined;
-  return value.trim().toLowerCase() === 'generatif' ? 'generatif' : 'vegetatif';
 }
 
 function normalizeSensorContext(input: unknown): Partial<SensorSnapshotContext> | null {

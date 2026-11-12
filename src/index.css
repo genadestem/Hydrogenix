@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   * {
@@ -14,9 +15,14 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: #f8fafc;
-    color: #0f172a;
+    background: #f3f6f2;
+    color: #17251a;
     transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  html.dark body {
+    background: #090711;
+    color: #e2e8f0;
   }
 }
 
@@ -26,15 +32,15 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent;
   }
 
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-xl shadow-lg shadow-emerald-200 hover:shadow-xl transition-all;
+    @apply px-6 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-medium rounded-xl shadow-lg shadow-violet-950/30 hover:shadow-xl transition-all;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-white text-gray-700 font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-all;
+    @apply px-6 py-3 bg-slate-900 text-slate-200 font-medium rounded-xl border border-white/10 hover:bg-slate-800 transition-all;
   }
 }
 
@@ -53,6 +59,262 @@
   }
 }
 
+/* Keep legacy light utility classes readable inside the dark application shell. */
+.app-shell.theme-dark {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 82% -10%, rgb(91 33 182 / 10%), transparent 36rem),
+    #090711;
+  color: #e2e8f0;
+}
+
+.app-shell.theme-dark [class~="bg-white"],
+.app-shell.theme-dark [class~="bg-white/60"],
+.app-shell.theme-dark [class~="bg-white/70"],
+.app-shell.theme-dark [class~="bg-white/80"],
+.app-shell.theme-dark [class~="bg-white/90"],
+.app-shell.theme-dark [class~="bg-gray-50"],
+.app-shell.theme-dark [class~="bg-slate-50"] {
+  background-color: #12101c;
+}
+
+.app-shell.theme-dark [class~="bg-white/60"],
+.app-shell.theme-dark [class~="bg-white/70"],
+.app-shell.theme-dark [class~="bg-white/80"],
+.app-shell.theme-dark [class~="bg-white/90"] {
+  background-color: rgb(18 16 28 / 88%);
+}
+
+.app-shell.theme-dark [class~="bg-gray-100"],
+.app-shell.theme-dark [class~="bg-slate-100"] {
+  background-color: #1b1827;
+}
+
+.app-shell.theme-dark [class~="bg-emerald-50"],
+.app-shell.theme-dark [class~="bg-emerald-100"],
+.app-shell.theme-dark [class~="bg-green-50"],
+.app-shell.theme-dark [class~="bg-purple-50"] {
+  background-color: rgb(139 92 246 / 10%);
+}
+
+.app-shell.theme-dark [class~="bg-emerald-50/60"] {
+  background-color: rgb(139 92 246 / 8%);
+}
+
+.app-shell.theme-dark [class~="bg-blue-50"],
+.app-shell.theme-dark [class~="bg-cyan-50"] {
+  background-color: rgb(56 189 248 / 10%);
+}
+
+.app-shell.theme-dark [class~="bg-amber-50"],
+.app-shell.theme-dark [class~="bg-yellow-50"],
+.app-shell.theme-dark [class~="bg-orange-50"] {
+  background-color: rgb(245 158 11 / 10%);
+}
+
+.app-shell.theme-dark [class~="bg-red-50"] {
+  background-color: rgb(248 113 113 / 10%);
+}
+
+.app-shell.theme-dark [class~="text-slate-900"],
+.app-shell.theme-dark [class~="text-slate-800"],
+.app-shell.theme-dark [class~="text-slate-700"],
+.app-shell.theme-dark [class~="text-gray-900"],
+.app-shell.theme-dark [class~="text-gray-800"],
+.app-shell.theme-dark [class~="text-gray-700"] {
+  color: #e2e8f0;
+}
+
+.app-shell.theme-dark [class~="text-emerald-600"],
+.app-shell.theme-dark [class~="text-emerald-700"],
+.app-shell.theme-dark [class~="text-emerald-800"] {
+  color: #c4b5fd;
+}
+
+.app-shell.theme-dark [class~="border-slate-200"],
+.app-shell.theme-dark [class~="border-slate-100"],
+.app-shell.theme-dark [class~="border-gray-200"],
+.app-shell.theme-dark [class~="border-gray-100"],
+.app-shell.theme-dark [class~="border-emerald-100"] {
+  border-color: rgb(255 255 255 / 9%);
+}
+
+.app-shell.theme-dark [class~="bg-emerald-600"],
+.app-shell.theme-dark [class~="bg-emerald-500"] {
+  background-color: #7c3aed;
+}
+
+.app-shell.theme-dark input,
+.app-shell.theme-dark select,
+.app-shell.theme-dark textarea {
+  color-scheme: dark;
+}
+
+html:not(.dark) body {
+  color-scheme: light;
+}
+
+.app-shell.theme-light {
+  min-height: 100vh;
+  background: #f3f6f2;
+  color: #17251a;
+}
+
+.theme-light aside {
+  border-color: #244e35;
+  background: #174b32;
+  color: #f4fff7;
+}
+
+.theme-light > button[aria-label="Buka menu"] {
+  background-color: #34794a;
+}
+
+.theme-light aside > div:first-child {
+  border-color: rgb(255 255 255 / 14%);
+}
+
+.theme-light aside img {
+  object-position: center;
+}
+
+.theme-light aside nav button {
+  color: #d3e8d8;
+}
+
+.theme-light aside nav button:hover {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
+.theme-light aside nav button[class*="from-violet-600"] {
+  background: linear-gradient(110deg, #72a85a, #438c50);
+  color: #fff;
+  box-shadow: 0 8px 20px rgb(13 44 26 / 24%);
+}
+
+.theme-light aside nav button svg {
+  color: #b6d59e;
+}
+
+.theme-light aside nav button[class*="from-violet-600"] svg {
+  color: #fff;
+}
+
+.theme-light aside > div:last-of-type > div {
+  border-color: rgb(255 255 255 / 16%);
+  background: rgb(255 255 255 / 7%);
+}
+
+.theme-light header {
+  border-color: #dce5dc;
+  background: rgb(255 255 255 / 94%);
+}
+
+.theme-light header h2 {
+  color: #1c3023;
+}
+
+.theme-light main {
+  color: #203327;
+}
+
+.theme-light main [class~="bg-[#090711]"],
+.theme-light main [class~="bg-[#100e19]"],
+.theme-light main [class~="bg-[#12101c]"] {
+  background-color: #fff;
+}
+
+.theme-light main [class~="bg-[#0c0a14]/90"] {
+  background-color: rgb(255 255 255 / 94%);
+}
+
+.theme-light main [class~="text-white"] {
+  color: #183421;
+}
+
+.theme-light main button[class~="text-white"],
+.theme-light main [class~="bg-emerald-600"][class~="text-white"] {
+  color: #fff;
+}
+
+.theme-light main [class~="text-slate-100"],
+.theme-light main [class~="text-slate-200"],
+.theme-light main [class~="text-slate-300"] {
+  color: #263d2e;
+}
+
+.theme-light main [class~="text-slate-400"],
+.theme-light main [class~="text-slate-500"],
+.theme-light main [class~="text-gray-500"] {
+  color: #526357;
+}
+
+.theme-light main [class~="text-violet-200"],
+.theme-light main [class~="text-violet-300"] {
+  color: #357344;
+}
+
+.theme-light main [class~="border-white/[0.08]"],
+.theme-light main [class~="border-white/[0.07]"],
+.theme-light main [class~="border-violet-300/10"] {
+  border-color: #dce7dc;
+}
+
+.theme-light main [class~="bg-violet-400/10"],
+.theme-light main [class~="bg-violet-400/[0.07]"] {
+  background-color: #eaf3e7;
+}
+
+.theme-light main [class~="bg-violet-500/10"] {
+  background-color: #e7f1e4;
+}
+
+.theme-light main .dashboard-hero {
+  background-image: linear-gradient(120deg, #e4f0dc, #f1f7ed 55%, #e8f2e3);
+}
+
+.theme-light main input,
+.theme-light main select,
+.theme-light main textarea {
+  color-scheme: light;
+}
+
+.theme-light main input:not([type="checkbox"]):not([type="radio"]),
+.theme-light main select,
+.theme-light main textarea {
+  border-color: #cbd9cc;
+  background-color: #fff;
+  color: #1d3324;
+}
+
+.theme-light main input::placeholder,
+.theme-light main textarea::placeholder {
+  color: #627465;
+}
+
+.theme-light main [class*="bg-gradient-to-br"][class*="from-violet-500"] {
+  background-image: linear-gradient(to bottom right, #5c9b50, #378451);
+}
+
+.theme-light main button[class*="bg-emerald-600"],
+.theme-light main button[class*="bg-emerald-700"] {
+  background-color: #34794a;
+  color: #fff;
+}
+
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #e9efe8;
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #b5c5b5;
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #8ca48d;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -60,15 +322,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #100e19;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #3b354b;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #5b5270;
 }

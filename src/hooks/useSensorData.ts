@@ -36,7 +36,7 @@ export interface SensorData {
   created_at: string;
 }
 
-function toNumber(value: unknown, fallback: number | null = null): number | null {
+function toNumber(value: unknown, fallback: number | null | undefined = null): number | null {
   const n = typeof value === 'string' ? Number(value.replace(',', '.')) : Number(value);
   return Number.isFinite(n) ? n : fallback;
 }
@@ -87,43 +87,44 @@ function buildFallbackData(): SensorData {
   };
 }
 
-function normalizeSensorDataRow(row: any): SensorData | null {
+function normalizeSensorDataRow(row: Record<string, unknown> | null | undefined): SensorData | null {
   if (!row || typeof row !== 'object') return null;
   const fallback = buildFallbackData();
+  const value = row as Record<string, unknown>;
 
   return {
-    id: row.id ?? undefined,
-    device_id: row.device_id ?? fallback.device_id,
-    temperature: (toNumber(row.temperature, fallback.temperature) ?? fallback.temperature) as number,
-    humidity: (toNumber(row.humidity, fallback.humidity) ?? fallback.humidity) as number,
-    soil_moisture: (toNumber(row.soil_moisture ?? row.soil ?? row.tanah, fallback.soil_moisture) ?? fallback.soil_moisture) as number,
-    rain: toNumber(row.rain ?? row.hujan, fallback.rain),
-    score: toNumber(row.score ?? row.score_total ?? row.skor, fallback.score),
-    soil_score: toNumber(row.soil_score ?? row.skor_tanah, fallback.soil_score),
-    vdp_score: toNumber(row.vdp_score ?? row.skor_vdp, fallback.vdp_score),
-    rain_score: toNumber(row.rain_score ?? row.skor_hujan, fallback.rain_score),
-    vpd: toNumber(row.vpd, fallback.vpd),
-    duration_estimate: toNumber(row.duration_estimate ?? row.duration ?? row.durasi, fallback.duration_estimate),
-    pump_status: toBoolean(row.pump_status, fallback.pump_status),
-    led_status: toBoolean(row.led_status ?? row.feeder_status, fallback.led_status),
-    device_mode: row.device_mode === 'auto' || row.device_mode === 'manual' ? row.device_mode : null,
-    wifi_status: row.wifi_status ?? fallback.wifi_status,
-    threshold_kritis: toNumber(row.threshold_kritis, fallback.threshold_kritis),
-    threshold_atas: toNumber(row.threshold_atas, fallback.threshold_atas),
-    threshold_bawah: toNumber(row.threshold_bawah, fallback.threshold_bawah),
-    watering_time: typeof row.watering_time === 'string' ? row.watering_time : null,
-    watering_duration: toNumber(row.watering_duration, fallback.watering_duration),
-    watering_active: toBoolean(row.watering_active, fallback.watering_active ?? false),
-    auto_state: typeof row.auto_state === 'string' ? row.auto_state : null,
-    auto_reason: typeof row.auto_reason === 'string' ? row.auto_reason : null,
-    schedule_enabled: toBoolean(row.schedule_enabled, fallback.schedule_enabled),
-    formula_name: typeof row.formula_name === 'string' ? row.formula_name : null,
-    formula_soil: typeof row.formula_soil === 'string' ? row.formula_soil : null,
-    formula_vpd: typeof row.formula_vpd === 'string' ? row.formula_vpd : null,
-    formula_score: typeof row.formula_score === 'string' ? row.formula_score : null,
-    soil_raw_dry: toNumber(row.soil_raw_dry, fallback.soil_raw_dry),
-    plant_phase: row.plant_phase === 'generatif' || row.plant_phase === 'vegetatif' ? row.plant_phase : null,
-    created_at: row.created_at ?? new Date().toISOString(),
+    id: typeof value.id === 'number' ? value.id : undefined,
+    device_id: (value.device_id as string | undefined) ?? fallback.device_id,
+    temperature: (toNumber(value.temperature, fallback.temperature) ?? fallback.temperature) as number,
+    humidity: (toNumber(value.humidity, fallback.humidity) ?? fallback.humidity) as number,
+    soil_moisture: (toNumber(value.soil_moisture ?? value.soil ?? value.tanah, fallback.soil_moisture) ?? fallback.soil_moisture) as number,
+    rain: toNumber(value.rain ?? value.hujan, fallback.rain),
+    score: toNumber(value.score ?? value.score_total ?? value.skor, fallback.score),
+    soil_score: toNumber(value.soil_score ?? value.skor_tanah, fallback.soil_score),
+    vdp_score: toNumber(value.vdp_score ?? value.skor_vdp, fallback.vdp_score),
+    rain_score: toNumber(value.rain_score ?? value.skor_hujan, fallback.rain_score),
+    vpd: toNumber(value.vpd, fallback.vpd),
+    duration_estimate: toNumber(value.duration_estimate ?? value.duration ?? value.durasi, fallback.duration_estimate),
+    pump_status: toBoolean(value.pump_status, fallback.pump_status),
+    led_status: toBoolean(value.led_status ?? value.feeder_status, fallback.led_status),
+    device_mode: value.device_mode === 'auto' || value.device_mode === 'manual' ? (value.device_mode as 'auto' | 'manual') : null,
+    wifi_status: (value.wifi_status as string | undefined) ?? fallback.wifi_status,
+    threshold_kritis: toNumber(value.threshold_kritis, fallback.threshold_kritis),
+    threshold_atas: toNumber(value.threshold_atas, fallback.threshold_atas),
+    threshold_bawah: toNumber(value.threshold_bawah, fallback.threshold_bawah),
+    watering_time: typeof value.watering_time === 'string' ? value.watering_time : null,
+    watering_duration: toNumber(value.watering_duration, fallback.watering_duration),
+    watering_active: toBoolean(value.watering_active, fallback.watering_active ?? false),
+    auto_state: typeof value.auto_state === 'string' ? value.auto_state : null,
+    auto_reason: typeof value.auto_reason === 'string' ? value.auto_reason : null,
+    schedule_enabled: toBoolean(value.schedule_enabled, fallback.schedule_enabled),
+    formula_name: typeof value.formula_name === 'string' ? value.formula_name : null,
+    formula_soil: typeof value.formula_soil === 'string' ? value.formula_soil : null,
+    formula_vpd: typeof value.formula_vpd === 'string' ? value.formula_vpd : null,
+    formula_score: typeof value.formula_score === 'string' ? value.formula_score : null,
+    soil_raw_dry: toNumber(value.soil_raw_dry, fallback.soil_raw_dry),
+    plant_phase: value.plant_phase === 'generatif' || value.plant_phase === 'vegetatif' ? (value.plant_phase as 'generatif' | 'vegetatif') : null,
+    created_at: (value.created_at as string | undefined) ?? new Date().toISOString(),
   };
 }
 
@@ -222,9 +223,16 @@ export function useSensorData(pollInterval = 1000) {
   }, [mergeWithLiveSnapshot]);
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, pollInterval);
-    return () => clearInterval(interval);
+    const run = () => {
+      void fetchData();
+    };
+
+    const timeoutId = window.setTimeout(run, 0);
+    const interval = window.setInterval(run, pollInterval);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(interval);
+    };
   }, [fetchData, pollInterval]);
 
   useEffect(() => {

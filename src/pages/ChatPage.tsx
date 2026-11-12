@@ -19,7 +19,7 @@ export function ChatPage({ sensorData = null, settings = null, weatherData = nul
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <MessageSquare className="h-6 w-6 text-emerald-600" />
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">NexaBot</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Hydrogenix AI</h2>
         <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
           <Sparkles size={12} />
           AI Pertanian

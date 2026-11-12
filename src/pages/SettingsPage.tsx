@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, User, Sprout, Wifi, CalendarDays, SlidersHorizontal, Droplets, Thermometer, MapPinned } from 'lucide-react';
+import { Settings as SettingsIcon, Sprout, Wifi, CalendarDays, SlidersHorizontal, Droplets, Thermometer, MapPinned, Moon, Sun } from 'lucide-react';
 import { useSettings, Settings as SettingsType } from '../hooks/useSettings';
 import { useControl } from '../hooks/useControl';
 import { useWeather } from '../hooks/useWeather';
@@ -12,7 +12,12 @@ const phaseOptions = [
   { id: 'generatif', icon: '🌼' },
 ] as const;
 
-export function SettingsPage() {
+interface SettingsPageProps {
+  theme: 'dark' | 'light';
+  onThemeChange: (theme: 'dark' | 'light') => void;
+}
+
+export function SettingsPage({ theme, onThemeChange }: SettingsPageProps) {
   const { settings, loading, updateSettings } = useSettings();
   const { sendCommand, loading: controlLoading } = useControl();
 
@@ -28,17 +33,14 @@ export function SettingsPage() {
   const [wifiStatus, setWifiStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [wifiError, setWifiError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (settings && !isDirty) setFormData(settings);
-  }, [settings, isDirty]);
-
-  const weatherLocation = String(formData.location || settings?.location || '');
+  const effectiveFormData = isDirty ? formData : (settings ?? formData);
+  const weatherLocation = String(effectiveFormData.location || settings?.location || '');
 
   // Kode wilayah disimpan internal untuk API cuaca, namun tidak ditampilkan mentah di UI web.
   const { data: weatherData } = useWeather(weatherLocation);
 
 
-  const currentPhase = (formData.plant_phase || settings?.plant_phase || 'vegetatif') as 'vegetatif' | 'generatif';
+  const currentPhase = (effectiveFormData.plant_phase || settings?.plant_phase || 'vegetatif') as 'vegetatif' | 'generatif';
   const phaseProfile = getPlantPhaseProfile(currentPhase);
 
   const updateField = (field: keyof SettingsType, value: unknown) => {
@@ -241,6 +243,50 @@ export function SettingsPage() {
           <h2 className="text-2xl font-bold text-gray-800">Pengaturan</h2>
         </div>
       </div>
+
+      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm" aria-labelledby="theme-setting-title">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700">
+              {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            </div>
+            <div>
+              <h3 id="theme-setting-title" className="text-lg font-semibold text-gray-800">Tampilan Aplikasi</h3>
+              <p className="mt-1 max-w-xl text-sm leading-relaxed text-gray-500">
+                Pilih tema gelap untuk penggunaan nyaman di dalam ruangan atau tema terang dengan sidebar hijau yang jelas di bawah sinar matahari.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-gray-200 bg-gray-50 p-1.5 sm:min-w-64">
+            <button
+              type="button"
+              onClick={() => onThemeChange('dark')}
+              aria-pressed={theme === 'dark'}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
+                theme === 'dark'
+                  ? 'bg-violet-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-white hover:text-gray-900'
+              }`}
+            >
+              <Moon size={16} />
+              Gelap
+            </button>
+            <button
+              type="button"
+              onClick={() => onThemeChange('light')}
+              aria-pressed={theme === 'light'}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
+                theme === 'light'
+                  ? 'bg-emerald-700 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-white hover:text-gray-900'
+              }`}
+            >
+              <Sun size={16} />
+              Terang
+            </button>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 

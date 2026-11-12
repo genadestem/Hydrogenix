@@ -230,7 +230,13 @@ export function useSettings() {
   );
 
   useEffect(() => {
-    void fetchSettings();
+    const timeoutId = window.setTimeout(() => {
+      void fetchSettings();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchSettings]);
 
   useEffect(() => {

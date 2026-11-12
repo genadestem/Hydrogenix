@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getMqttClient, publishMqtt, publishMqttWithAck, parseMqttJsonPayload, syncLocalControlState } from '../services/mqtt';
+import { getMqttClient, publishMqtt, syncLocalControlState } from '../services/mqtt';
 
 export interface ControlLog {
   id: number;
@@ -50,7 +50,7 @@ function createLog(action: string, device: string, duration: number | null, stat
   };
 }
 
-function resolveControlCommand(action: string, duration?: number, data?: Record<string, any>) {
+function resolveControlCommand(action: string, duration?: number, data?: Record<string, unknown>) {
   switch (action) {
     case 'pump_on':
       return { topic: 'sproutai/pompa/cmd', payload: 'ON' };
@@ -73,8 +73,8 @@ function resolveControlCommand(action: string, duration?: number, data?: Record<
       const phaseValue = String(data?.plant_phase ?? '').trim().toLowerCase() === 'generatif' ? 1 : 0;
       const autoModeValue = typeof data?.auto_mode === 'string'
         ? (String(data?.auto_mode).trim().toLowerCase() === 'manual' ? 0 : 1)
-        : Boolean(data?.auto_mode) ? 1 : 0;
-      const enabled = Boolean(data?.watering_enabled ?? data?.schedule_enabled ?? true);
+        : data?.auto_mode ? 1 : 0;
+      const enabled = data?.watering_enabled ?? data?.schedule_enabled ?? true;
       const location = String(data?.location ?? '').trim();
       const weatherLocation = String(data?.weather_location ?? data?.location ?? '').trim();
       const weatherCondition = String(data?.weather_condition ?? '').trim();
@@ -127,7 +127,7 @@ function resolveControlCommand(action: string, duration?: number, data?: Record<
     }
     case 'schedule_set':
       {
-        const enabled = Boolean(data?.schedule_enabled ?? data?.watering_enabled ?? true);
+        const enabled = data?.schedule_enabled ?? data?.watering_enabled ?? true;
         const rawWateringTime = String(data?.watering_time ?? '').trim();
         // Bug #4 Fix: Validasi format HH:MM sebelum dikirim ke ESP32.
         // Jika kosong atau format salah, fallback ke '06:00' agar jadwal tetap valid.
@@ -178,7 +178,7 @@ export function useControl() {
     return stored;
   }, []);
 
-  const sendCommand = useCallback(async (action: string, duration?: number, data?: Record<string, any>): Promise<SendCommandResult> => {
+  const sendCommand = useCallback(async (action: string, duration?: number, data?: Record<string, unknown>): Promise<SendCommandResult> => {
     setLoading(true);
     setError(null);
 
@@ -218,17 +218,10 @@ export function useControl() {
         });
       }
 
-      if (action === 'settings_sync' || action === 'schedule_set') {
-        await publishMqtt(mqttCommand.topic, mqttCommand.payload, {
-          retain: false,
-          qos: 1,
-        });
-      } else {
-        await publishMqtt(mqttCommand.topic, mqttCommand.payload, {
-          retain: false,
-          qos: 1,
-        });
-      }
+      await publishMqtt(mqttCommand.topic, mqttCommand.payload, {
+        retain: false,
+        qos: 1,
+      });
 
       syncLocalControlState(action, duration, data);
       pushLog(createLog(action, 'ESP32_001', duration ?? null, 'completed'));
@@ -244,7 +237,13 @@ export function useControl() {
   }, [pushLog]);
 
   useEffect(() => {
-    fetchLogs();
+    const timeoutId = window.setTimeout(() => {
+      void fetchLogs();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchLogs]);
 
   return { sendCommand, fetchLogs, logs, loading, error };

@@ -210,9 +210,15 @@ export function useChat() {
   );
 
   useEffect(() => {
-    persistMessages(readLocalMessages());
-    fetchMessages();
-    refreshConnectionStatus();
+    const timeoutId = window.setTimeout(() => {
+      persistMessages(readLocalMessages());
+      void fetchMessages();
+      void refreshConnectionStatus();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchMessages, persistMessages, refreshConnectionStatus]);
 
   return {

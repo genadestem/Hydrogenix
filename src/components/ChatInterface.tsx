@@ -262,27 +262,29 @@ export function ChatInterface({ sensorData = null, settings = null, weatherData 
   };
 
   const rootClassName = isCompact
-    ? 'flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm'
-    : 'flex h-[calc(100vh-200px)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm';
+    ? 'flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#100e19] shadow-sm shadow-black/20'
+    : 'flex h-[calc(100vh-200px)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#100e19] shadow-sm shadow-black/20';
 
   const headerClassName = isCompact
-    ? 'rounded-t-2xl border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-3'
-    : 'rounded-t-2xl border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-4';
+    ? 'rounded-t-2xl border-b border-white/[0.08] bg-gradient-to-r from-violet-500/10 via-fuchsia-500/[0.04] to-transparent p-3'
+    : 'rounded-t-2xl border-b border-white/[0.08] bg-gradient-to-r from-violet-500/10 via-fuchsia-500/[0.04] to-transparent p-4';
 
   const bodyClassName = isCompact ? 'space-y-3 overflow-y-auto p-3' : 'space-y-4 overflow-y-auto p-4 flex-1';
 
-  const footerClassName = isCompact ? 'border-t border-gray-100 bg-white p-3' : 'border-t border-gray-100 bg-white p-4';
+  const footerClassName = isCompact
+    ? 'border-t border-white/[0.08] bg-[#100e19] p-3'
+    : 'border-t border-white/[0.08] bg-[#100e19] p-4';
 
   return (
     <div className={rootClassName}>
       <div className={headerClassName}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 ${isCompact ? 'h-9 w-9' : 'h-10 w-10'}`}>
+            <div className={`flex items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 ${isCompact ? 'h-9 w-9' : 'h-10 w-10'}`}>
               <Bot className={`${isCompact ? 'h-4 w-4' : 'h-5 w-5'} text-white`} />
             </div>
             <div>
-              <h3 className={`font-semibold text-gray-800 ${isCompact ? 'text-sm' : ''}`}>NexaBot</h3>
+              <h3 className={`font-semibold text-gray-800 ${isCompact ? 'text-sm' : ''}`}>Hydrogenix AI</h3>
               <p className={`flex items-center gap-1 text-xs ${statusTone.text}`}>
                 <span className={`h-2 w-2 rounded-full ${statusTone.dot} ${connectionStatus.state === 'connected' ? 'animate-pulse' : ''}`} />
                 {connectionStatus.label}
@@ -345,7 +347,7 @@ export function ChatInterface({ sensorData = null, settings = null, weatherData 
             <div className={`mx-auto mb-4 flex items-center justify-center rounded-full bg-emerald-50 ${isCompact ? 'h-14 w-14' : 'h-20 w-20'}`}>
               <Leaf className={`text-emerald-500 ${isCompact ? 'h-7 w-7' : 'h-10 w-10'}`} />
             </div>
-            <h4 className={`mb-2 font-semibold text-gray-700 ${isCompact ? 'text-sm' : 'text-lg'}`}>Selamat datang di NexaBot!</h4>
+            <h4 className={`mb-2 font-semibold text-gray-700 ${isCompact ? 'text-sm' : 'text-lg'}`}>Selamat datang di Hydrogenix AI!</h4>
             <p className={`mx-auto ${isCompact ? 'mb-4 text-xs' : 'mb-6 max-w-md text-gray-500'}`}>
               Saya siap membantu memantau tanaman, membaca data cuaca aktif, dan memberi saran berdasarkan fase vegetatif atau generatif.
             </p>

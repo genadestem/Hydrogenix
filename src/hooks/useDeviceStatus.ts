@@ -30,9 +30,16 @@ export function useDeviceStatus(pollInterval = 5000) {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, pollInterval);
-    return () => clearInterval(interval);
+    const timeoutId = window.setTimeout(() => {
+      void fetchStatus();
+    }, 0);
+    const interval = window.setInterval(() => {
+      void fetchStatus();
+    }, pollInterval);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(interval);
+    };
   }, [fetchStatus, pollInterval]);
 
   return { status, loading, error, refetch: fetchStatus };

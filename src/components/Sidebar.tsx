@@ -13,7 +13,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import logo from '../assets/nexagrow-logo.png';
+import logo from '../assets/hydrogenix-logo.jpeg';
 
 export type PageId =
   | 'dashboard'
@@ -49,7 +49,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
       <motion.button
         whileTap={{ scale: 0.95 }}
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden inline-flex items-center justify-center rounded-2xl bg-emerald-600 text-white p-3 shadow-lg shadow-emerald-900/20"
+        className="fixed top-4 left-4 z-50 lg:hidden inline-flex items-center justify-center rounded-2xl bg-violet-600 text-white p-3 shadow-lg shadow-violet-900/30"
         aria-label="Buka menu"
       >
         <Menu size={22} />
@@ -76,11 +76,11 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
         <div className="flex items-center justify-between gap-3 border-b border-white/10 p-5">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10">
-              <img src={logo} alt="NexaGrow" className="h-full w-full object-cover" />
+              <img src={logo} alt="Hydrogenix" className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold leading-tight">NexaGrow</h1>
-              <p className="truncate text-[11px] text-emerald-200/80">Smart Plant Monitoring</p>
+              <h1 className="truncate text-lg font-bold leading-tight">Hydrogenix</h1>
+              <p className="truncate text-[11px] text-violet-200/80">Smart Plant Monitoring</p>
             </div>
           </div>
 
@@ -109,11 +109,11 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
                 }}
                 className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all ${
                   isActive
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-900/20'
+                    ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-950/30'
                     : 'text-slate-300 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <Icon size={18} className={isActive ? 'text-white' : 'text-emerald-300'} />
+                <Icon size={18} className={isActive ? 'text-white' : 'text-violet-300'} />
                 <span className="font-medium">{item.label}</span>
               </motion.button>
             );
@@ -122,9 +122,9 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
 
         <div className="mt-auto p-4">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-            <div className="mb-2 flex items-center gap-2 text-emerald-300">
+            <div className="mb-2 flex items-center gap-2 text-violet-300">
               <Sprout size={16} />
-              <span className="font-semibold">NexaGrow AI</span>
+              <span className="font-semibold">Hydrogenix AI</span>
             </div>
             <p className="text-xs leading-relaxed text-slate-300/80">
               Monitoring sensor, jadwal penyiraman, dan analisis tanaman.

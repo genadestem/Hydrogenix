@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { buildApiHeaders } from '../lib/apiAuth';
 import { getPhaseDefaults, normalizePlantPhase, type PlantPhase } from '../lib/plantPhase';
@@ -160,7 +161,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const normalized = normalizeSettings(data);
       setSettings(normalized);
       persistSettings(normalized);
-    } catch (err) {
+    } catch {
       const fallback = readStoredSettings() ?? DEFAULT_SETTINGS;
       setSettings(fallback);
       persistSettings(fallback);
@@ -201,7 +202,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    void fetchSettings();
+    const timeoutId = window.setTimeout(() => {
+      void fetchSettings();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchSettings]);
 
   useEffect(() => {
@@ -240,10 +247,18 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
 export function useSettings() {
   const context = useContext(SettingsContext);
+  const [fallbackSettings, setFallbackSettings] = useState<Settings | null>(() => readStoredSettings());
+
   if (!context) {
-    // Fallback for when used outside provider (development/testing)
-    const [settings, setSettings] = useState<Settings | null>(() => readStoredSettings());
-    return { settings, loading: false, updateSettings: async () => settings || DEFAULT_SETTINGS };
+    const fallbackUpdateSettings = async (updates: Partial<Settings>) => {
+      const previous = fallbackSettings ? normalizeSettings(fallbackSettings) : DEFAULT_SETTINGS;
+      const next = normalizeSettings({ ...previous, ...updates });
+      setFallbackSettings(next);
+      persistSettings(next);
+      return next;
+    };
+
+    return { settings: fallbackSettings, loading: false, updateSettings: fallbackUpdateSettings };
   }
   return context;
 }

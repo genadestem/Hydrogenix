@@ -42,10 +42,29 @@ function resolvePageFromPath(pathname: string) {
 }
 
 function App() {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    try {
+      return window.localStorage.getItem('hydrogenix-theme') === 'light' ? 'light' : 'dark';
+    } catch (error) {
+      console.error('Gagal membaca preferensi tema:', error);
+      return 'dark';
+    }
+  });
   const [currentPage, setCurrentPage] = useState<PageId>(() => {
     if (typeof window === 'undefined') return 'dashboard';
     return resolvePageFromPath(window.location.pathname) as PageId;
   });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    try {
+      window.localStorage.setItem('hydrogenix-theme', theme);
+    } catch (error) {
+      console.error('Gagal menyimpan preferensi tema:', error);
+    }
+  }, [theme]);
+
   const { data: sensorData, history, loading: sensorLoading } = useSensorData(3000);
 
   const { status: deviceStatus } = useDeviceStatus(5000);
@@ -174,7 +193,7 @@ function App() {
       for (const item of alerts) {
         await createAlert(item.type, item.message, item.severity, {
           sendEmail: false,
-          recipientEmail: undefined as any,
+          recipientEmail: undefined,
           metadata: item.metadata,
         });
       }
@@ -207,11 +226,11 @@ function App() {
   const lastRainPublishRef = useRef<number>(0);
   const RAIN_PUBLISH_INTERVAL_MS = 3 * 60 * 60 * 1000; // 3 jam
   const lastRainValueRef = useRef<number | null>(null);
+  const rainChance = weatherData?.current?.rain_chance;
 
   useEffect(() => {
-    if (!weatherData?.current?.rain_chance) return;
+    if (rainChance == null) return;
 
-    const rainChance = weatherData.current.rain_chance;
     const now = Date.now();
     const lastPublish = lastRainPublishRef.current;
     const lastValue = lastRainValueRef.current;
@@ -227,9 +246,9 @@ function App() {
       lastRainValueRef.current = rainChance;
       publishRainChance(rainChance).catch(() => {});
     }
-  }, [weatherData?.current?.rain_chance]);
+  }, [RAIN_PUBLISH_INTERVAL_MS, rainChance]);
 
-  const mqttHistory = useMemo(() => getSensorHistorySnapshot(), [mqttStatus.lastMessageAt, mqttStatus.sensorSnapshot?.updatedAt]);
+  const mqttHistory = getSensorHistorySnapshot();
 
   const renderPage = () => {
     switch (currentPage) {
@@ -254,7 +273,7 @@ function App() {
       case 'logs':
         return <LogsPage />;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage theme={theme} onThemeChange={setTheme} />;
       case 'about':
         return <AboutPage />;
       default:
@@ -272,7 +291,7 @@ function App() {
 
   if (sensorLoading && !sensorData) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-800">
+      <div className={`app-shell theme-${theme} min-h-screen text-slate-100`}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -284,8 +303,8 @@ function App() {
             className="mb-6 h-20 w-20 rounded-full border-4 border-emerald-200 border-t-emerald-500"
           />
           <div>
-            <h2 className="mb-2 text-2xl font-bold text-emerald-800">NexaGrow</h2>
-            <p className="text-emerald-600">Memuat data sensor...</p>
+            <h2 className="mb-2 text-2xl font-bold text-violet-200">Hydrogenix</h2>
+            <p className="text-violet-300">Memuat data sensor...</p>
           </div>
         </motion.div>
       </div>
@@ -297,12 +316,12 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen text-slate-800">
+    <div className={`app-shell theme-${theme} min-h-screen text-slate-100`}>
       <div className="flex min-h-screen">
         <Sidebar currentPage={currentPage} onPageChange={handlePageChange} />
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <Header mqttStatus={mqttStatus} currentPage={currentPage} health={health} />
+          <Header mqttStatus={mqttStatus} currentPage={currentPage} />
 
           <main className="flex-1 overflow-auto px-4 py-4 sm:px-6 sm:py-6">
             <AnimatePresence mode="wait">

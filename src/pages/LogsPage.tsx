@@ -66,10 +66,6 @@ const sourceColors = {
   sensor: 'bg-cyan-100 text-cyan-700',
 };
 
-function safeString(value: unknown) {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
 function describeSensor(row: SensorRow) {
   return `Suhu ${Number(row.temperature).toFixed(1)}°C • Udara ${Number(row.humidity).toFixed(1)}% • Tanah ${Number(row.soil_moisture).toFixed(1)}% • Pompa ${row.pump_status ? 'ON' : 'OFF'}`;
 }
@@ -182,7 +178,13 @@ export function LogsPage() {
   };
 
   useEffect(() => {
-    refresh();
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   const filteredItems = useMemo(() => {

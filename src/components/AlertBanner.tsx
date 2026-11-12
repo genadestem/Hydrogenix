@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X, Thermometer, Droplets } from 'lucide-react';
+import { X, Thermometer, Droplets } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { SensorData } from '../hooks/useSensorData';
 import { Settings } from '../hooks/useSettings';
@@ -19,11 +19,10 @@ interface Alert {
 }
 
 export function AlertBanner({ sensorData, settings }: AlertBannerProps) {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (!sensorData || !settings) return;
+  const alerts = useMemo<Alert[]>(() => {
+    if (!sensorData || !settings) return [];
 
     const newAlerts: Alert[] = [];
 
@@ -65,12 +64,11 @@ export function AlertBanner({ sensorData, settings }: AlertBannerProps) {
       });
     }
 
-    setAlerts(newAlerts.filter((a) => !dismissed.has(a.id)));
+    return newAlerts.filter((a) => !dismissed.has(a.id));
   }, [sensorData, settings, dismissed]);
 
   const dismissAlert = (id: string) => {
     setDismissed((prev) => new Set(prev).add(id));
-    setAlerts((prev) => prev.filter((a) => a.id !== id));
   };
 
   return (

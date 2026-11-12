@@ -11,18 +11,14 @@ const MQTT_PASSWORD = (import.meta.env.VITE_MQTT_PASSWORD as string | undefined)
 const WEB_STATUS_TOPIC = 'sproutai/web/status';
 const DEVICE_STATUS_TOPIC = 'sproutai/esp32/status';
 const SYSTEM_STATUS_TOPIC = 'sproutai/system/status';
+const SYSTEM_HEARTBEAT_TOPIC = 'sproutai/system/heartbeat';
 
-const TOPIC_POMPA_CMD = 'sproutai/pompa/cmd';
 const TOPIC_POMPA_STATUS = 'sproutai/pompa/status';
-const TOPIC_LAMPU_CMD = 'sproutai/lampu/cmd';
 const TOPIC_LAMPU_STATUS = 'sproutai/lampu/status';
-const TOPIC_MODE_CMD = 'sproutai/mode/cmd';
 const TOPIC_MODE_STATUS = 'sproutai/mode/status';
-const TOPIC_WIFI_CMD = 'sproutai/wifi/cmd';
 const TOPIC_WIFI_STATUS = 'sproutai/wifi/status';
 const TOPIC_SETTINGS_CMD = 'sproutai/settings/cmd';
 const TOPIC_SETTINGS_STATUS = 'sproutai/settings/status';
-const TOPIC_SCHEDULE_CMD = 'sproutai/schedule/cmd';
 const TOPIC_SCHEDULE_STATUS = 'sproutai/schedule/status';
 const TOPIC_SENSOR_JSON = 'sproutai/sensor/data';
 const TOPIC_RAIN_CHANCE = 'sproutai/weather/rain_chance';
@@ -35,6 +31,7 @@ const TOPIC_SYSTEM_FAULT = 'sproutai/system/fault';
 const SUBSCRIBE_TOPICS = [
   DEVICE_STATUS_TOPIC,
   SYSTEM_STATUS_TOPIC,
+  SYSTEM_HEARTBEAT_TOPIC,
   TOPIC_SENSOR_JSON,
   TOPIC_SOIL,
   TOPIC_TEMP,
@@ -50,7 +47,7 @@ const SUBSCRIBE_TOPICS = [
   TOPIC_SYSTEM_FAULT,
 ];
 
-const ESP_ONLINE_TIMEOUT_MS = 15_000; // 15 detik sebelum ESP32 dianggap offline
+const ESP_ONLINE_TIMEOUT_MS = 45_000; // 30 detik heartbeat + toleransi keterlambatan
 const HISTORY_LIMIT = 120;
 const SENSOR_PERSIST_INTERVAL_MS = 30_000;
 const SETTINGS_EVENT = 'nexagrow:settings-updated';
@@ -192,8 +189,6 @@ const defaultSnapshot = (): MqttStatusSnapshot => ({
 let snapshot: MqttStatusSnapshot = defaultSnapshot();
 let sensorSnapshot: MqttSensorSnapshot | null = null;
 let sensorHistory: MqttSensorSnapshot[] = [];
-let reconnectTimer: number | null = null;
-
 function emit() {
   const now = Date.now();
 
@@ -559,7 +554,7 @@ function parseStatusValue(payload: string): boolean | null {
   return null;
 }
 
-function updateFromTopic(topic: string, payload: string) {
+function updateFromTopic(topic: string, payload: string, retained = false) {
   const now = new Date().toISOString();
   const trimmed = payload.trim();
 
@@ -579,6 +574,19 @@ function updateFromTopic(topic: string, payload: string) {
       lastMessageAt: now,
     });
     return;
+  }
+
+  // Retained sensor snapshots can be replayed after reconnect; only live
+  // heartbeat/sensor messages prove the ESP32 is currently online.
+  if (
+    !retained &&
+    (topic === SYSTEM_HEARTBEAT_TOPIC || topic.startsWith('sproutai/sensor/'))
+  ) {
+    snapshot = {
+      ...snapshot,
+      espOnline: true,
+      espLastSeenAt: now,
+    };
   }
 
   if (topic === SYSTEM_STATUS_TOPIC) {
@@ -763,9 +771,9 @@ function connectOnce() {
     });
   });
 
-  client.on('message', (topic: string, message: Buffer) => {
+  client.on('message', (topic: string, message: Buffer, packet) => {
     const payload = message.toString();
-    updateFromTopic(topic, payload);
+    updateFromTopic(topic, payload, packet.retain);
     consumePendingMqttAcks(topic, payload);
   });
 
@@ -941,7 +949,7 @@ export function publishMqttWithAck(
   });
 }
 
-function applyLocalSnapshot(action: string, duration?: number, data?: Record<string, any>) {
+function applyLocalSnapshot(action: string, duration?: number, data?: Record<string, unknown>) {
   const now = new Date().toISOString();
 
   switch (action) {
@@ -1017,7 +1025,7 @@ function applyLocalSnapshot(action: string, duration?: number, data?: Record<str
   });
 }
 
-export function syncLocalControlState(action: string, duration?: number, data?: Record<string, any>) {
+export function syncLocalControlState(action: string, duration?: number, data?: Record<string, unknown>) {
   applyLocalSnapshot(action, duration, data);
 }
 
