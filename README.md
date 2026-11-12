@@ -663,7 +663,7 @@ lib_deps =
 #define MQTT_USERNAME "your_mqtt_username"
 #define MQTT_PASSWORD "your_mqtt_password"
 
-#define OPENROUTER_API_KEY "sk-or-v1-..."
+// OPENROUTER_API_KEY dikonfigurasi di server, bukan di firmware.
 
 #define BMKG_URL "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=33.74.05.1001"
 ```
@@ -682,8 +682,10 @@ lib_deps =
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon/public key untuk client-side access |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key untuk backend/API writes |
 | `VITE_API_AUTH_TOKEN` | Token internal untuk API route authentication |
+| `OPENROUTER_API_KEY` | Secret server-side untuk Hydrogenix AI |
+| `OPENROUTER_MODEL` | ID model OpenRouter, misalnya `openai/gpt-4o-mini` |
 
-> Catatan: `SUPABASE_SERVICE_ROLE_KEY` harus disimpan sebagai secret di environment dan hanya dipakai oleh server/API. Jangan letakkan di file JavaScript/klien yang bisa diakses browser.
+> Catatan: `SUPABASE_SERVICE_ROLE_KEY` dan `OPENROUTER_API_KEY` harus disimpan sebagai secret di environment dan hanya dipakai oleh server/API. Untuk lokal, atur di `.env` pada root proyek; untuk deployment, atur di environment variables platform hosting lalu deploy ulang. Jangan gunakan awalan `VITE_` atau letakkan secret di firmware, JavaScript, atau bundle browser.
 
 ### 9.4 NVS Preferences (Runtime)
 
@@ -1120,6 +1122,10 @@ Log level yang tersedia:
 - `[MODE]` - Perubahan mode
 - `[OTOMATIS]` - Logika kontrol otomatis
 - `[RELAY]` - Status relay/pompa
+
+### 13.10 Hydrogenix AI menampilkan Unauthorized (401)
+
+OpenRouter menolak API key yang diterima server. Pastikan `OPENROUTER_API_KEY` berisi key aktif pada environment server. Untuk deployment, perbarui environment variable di platform hosting lalu deploy ulang; `.env` lokal tidak mengubah environment deployment. Jangan mengirim atau menaruh API key di frontend.
 
 ---
 

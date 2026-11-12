@@ -266,6 +266,19 @@ function buildSystemPrompt(sensor) {
   ].join('\n');
 }
 
+function getOpenRouterErrorMessage(status, detail = '') {
+  if (status === 401) {
+    return 'OpenRouter menolak API key (401). Periksa OPENROUTER_API_KEY pada environment server, pastikan key masih aktif, lalu restart atau deploy ulang. Jangan menaruh key di frontend.';
+  }
+  if (status === 402) {
+    return 'OpenRouter menolak permintaan karena saldo atau batas penggunaan akun tidak mencukupi (402). Periksa billing akun OpenRouter.';
+  }
+  if (status === 403) {
+    return 'OpenRouter menolak akses ke model (403). Periksa izin model dan pengaturan akun OpenRouter.';
+  }
+  return detail || `OpenRouter request gagal dengan status ${status}`;
+}
+
 export async function getOpenRouterStatus(origin) {
   const key = getOpenRouterKey();
   const checkedAt = new Date().toISOString();
@@ -293,7 +306,7 @@ export async function getOpenRouterStatus(origin) {
         ok: false,
         state: 'error',
         label: 'AI Online tidak tersambung',
-        detail: detail || `HTTP ${response.status}`,
+        detail: getOpenRouterErrorMessage(response.status, detail),
 
         checkedAt,
       };
@@ -347,11 +360,10 @@ export async function sendOpenRouterMessage({ message, history = [], sensorConte
 
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(
-      payload?.error?.message ||
-      payload?.message ||
-      `OpenRouter request gagal dengan status ${response.status}`,
-    );
+    throw new Error(getOpenRouterErrorMessage(
+      response.status,
+      payload?.error?.message || payload?.message || '',
+    ));
   }
 
   const content = payload?.choices?.[0]?.message?.content;
